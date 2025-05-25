@@ -7,7 +7,7 @@ use bevy::{
     time::common_conditions::on_timer,
 };
 
-use crate::{CANVAS_SIZE, GameState, player::Player, walls::WALL_Y_LEN};
+use crate::{CANVAS_SIZE, GameState, player::Player, score::Score, walls::WALL_Y_LEN};
 
 const PIPE_X_LEN: f32 = 50.;
 const PIPE_GAP: f32 = 120.;
@@ -20,14 +20,18 @@ pub fn plugin(app: &mut App) {
     app.add_observer(insert_new_pipe)
         .add_systems(
             Update,
-            spawn_pipes
-                .run_if(in_state(GameState::Playing).and(on_timer(Duration::from_millis(1000)))),
+            (
+                spawn_pipes.run_if(
+                    in_state(GameState::Playing).and(on_timer(Duration::from_millis(1000))),
+                ),
+                check_if_passed,
+            ),
         )
         .add_systems(
             FixedUpdate,
             move_pipes_left.run_if(in_state(GameState::Playing)),
         )
-        .add_systems(PostUpdate, despawn_pipes);
+        .add_systems(PostUpdate, despawn_passed_pipes);
 }
 
 #[derive(Event)]
@@ -60,7 +64,10 @@ fn move_pipes_left(mut pairs: Query<&mut Transform, With<PipePair>>) {
     }
 }
 
-fn despawn_pipes(mut commands: Commands, pipe_pairs: Query<(Entity, &Transform), With<PipePair>>) {
+fn despawn_passed_pipes(
+    mut commands: Commands,
+    pipe_pairs: Query<(Entity, &Transform), With<PipePair>>,
+) {
     for (pipe_pair, transform) in pipe_pairs {
         if transform.translation.x <= -CANVAS_SIZE.x / 2. - PIPE_X_LEN {
             commands.entity(pipe_pair).despawn();
@@ -165,5 +172,24 @@ fn on_collision(
 
     if player.contains(event.collider) {
         state.set(GameState::GameOver);
+    }
+}
+
+/// Marks a pair of pipes that have passed the player and added to the score
+#[derive(Component)]
+struct Scored;
+
+fn check_if_passed(
+    mut commands: Commands,
+    pipes: Query<(Entity, &Transform), (With<PipePair>, Without<Scored>)>,
+    mut score: ResMut<Score>,
+) {
+    for (pipe, transform) in &pipes {
+        // the player is always at 0.
+        if transform.translation.x >= 0. {
+            continue;
+        }
+        score.0 += 1;
+        commands.entity(pipe).insert(Scored);
     }
 }

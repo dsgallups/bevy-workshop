@@ -4,6 +4,7 @@ use bevy::{prelude::*, render::camera::ScalingMode};
 mod countdown;
 mod pipes;
 mod player;
+mod score;
 mod walls;
 
 const GRAVITY_SCALE: f32 = 50.;
@@ -32,6 +33,7 @@ fn main() {
         walls::plugin,
         pipes::plugin,
         countdown::plugin,
+        score::plugin,
     ))
     .add_systems(Startup, spawn_camera)
     .run();
