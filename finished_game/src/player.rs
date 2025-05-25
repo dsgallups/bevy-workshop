@@ -1,7 +1,8 @@
 use avian2d::prelude::*;
 use bevy::{color::palettes::tailwind::RED_500, prelude::*};
 
-use crate::SPACEBAR_VELOCITY;
+const SQUARE_LEN: f32 = 30.;
+const SPACEBAR_VELOCITY: f32 = 300.;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_player)
@@ -12,7 +13,6 @@ pub fn plugin(app: &mut App) {
 pub struct Player;
 
 fn spawn_player(mut commands: Commands) {
-    const SQUARE_LEN: f32 = 30.;
     let square_sprite = Sprite {
         color: RED_500.into(),
         custom_size: Some(Vec2::splat(SQUARE_LEN)),

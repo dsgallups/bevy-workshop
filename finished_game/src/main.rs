@@ -1,11 +1,13 @@
 use avian2d::{math::Vector, prelude::*};
 use bevy::prelude::*;
 
+mod pipes;
 mod player;
 mod walls;
 
 const GRAVITY_SCALE: f32 = 50.;
-const SPACEBAR_VELOCITY: f32 = 300.;
+
+const CANVAS_SIZE: Vec2 = Vec2::new(600., 400.);
 
 fn main() {
     let mut app = App::new();
@@ -14,7 +16,7 @@ fn main() {
         .add_plugins(PhysicsPlugins::default())
         .insert_resource(Gravity(Vector::NEG_Y * 9.81 * GRAVITY_SCALE));
 
-    app.add_plugins((player::plugin, walls::plugin))
+    app.add_plugins((player::plugin, walls::plugin, pipes::plugin))
         .add_systems(Startup, spawn_camera)
         .run();
 }
