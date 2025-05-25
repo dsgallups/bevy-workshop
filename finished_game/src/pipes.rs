@@ -10,7 +10,7 @@ use bevy::{
 use crate::{CANVAS_SIZE, GameState, player::Player, score::Score, walls::WALL_Y_LEN};
 
 const PIPE_X_LEN: f32 = 50.;
-const PIPE_GAP: f32 = 120.;
+const PIPE_GAP: f32 = 180.;
 const PIPE_SPEED: f32 = 5.;
 
 const PIPE_TOP_START: f32 = CANVAS_SIZE.y / 2. - WALL_Y_LEN;

@@ -44,12 +44,12 @@ fn main() {
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera2d,
-        Projection::Orthographic(OrthographicProjection {
-            scaling_mode: ScalingMode::AutoMax {
-                max_width: CANVAS_SIZE.x,
-                max_height: CANVAS_SIZE.y,
-            },
-            ..OrthographicProjection::default_2d()
-        }),
+        // Projection::Orthographic(OrthographicProjection {
+        //     scaling_mode: ScalingMode::AutoMax {
+        //         max_width: CANVAS_SIZE.x,
+        //         max_height: CANVAS_SIZE.y,
+        //     },
+        //     ..OrthographicProjection::default_2d()
+        // }),
     ));
 }
