@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["my_game", "flappy_block"]
+members = ["my_game", "flappy_block", "basket"]
 default-members = ["my_game"]
 
 [profile.dev]
