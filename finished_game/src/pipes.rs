@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use avian2d::prelude::RigidBody;
+use avian2d::prelude::*;
 use bevy::{
     color::palettes::tailwind::{GREEN_500, GREEN_800},
     prelude::*,
@@ -10,13 +10,20 @@ use bevy::{
 use crate::{CANVAS_SIZE, GameState, walls::WALL_Y_LEN};
 
 const PIPE_X_LEN: f32 = 50.;
-const PIPE_GAP: f32 = 80.;
+const PIPE_GAP: f32 = 120.;
+const PIPE_SPEED: f32 = 5.;
 
 pub fn plugin(app: &mut App) {
-    app.add_observer(insert_new_pipe).add_systems(
-        Update,
-        spawn_pipes.run_if(in_state(GameState::Playing).and(on_timer(Duration::from_millis(300)))),
-    );
+    app.add_observer(insert_new_pipe)
+        .add_systems(
+            Update,
+            spawn_pipes
+                .run_if(in_state(GameState::Playing).and(on_timer(Duration::from_millis(1000)))),
+        )
+        .add_systems(
+            FixedUpdate,
+            move_pipes_left.run_if(in_state(GameState::Playing)),
+        );
 }
 
 #[derive(Event)]
@@ -36,7 +43,7 @@ fn insert_new_pipe(trigger: Trigger<InsertPipe>, mut commands: Commands) {
     let center_y = event.center_y;
 
     // where on the x axis does the pair sit
-    let pair_x = CANVAS_SIZE.x / 2. - PIPE_X_LEN / 2.;
+    let pair_x = CANVAS_SIZE.x / 2. + PIPE_X_LEN / 2.;
 
     /*
         a variable with `start` is the y value that is greater than the `end` value.
@@ -52,36 +59,36 @@ fn insert_new_pipe(trigger: Trigger<InsertPipe>, mut commands: Commands) {
     let bottom_pipe_height = pipe_bottom_start - pipe_bottom_end;
     let bottom_pipe_center_y = center_y - PIPE_GAP / 2. - bottom_pipe_height / 2.;
 
-    let pair = commands
-        .spawn((
-            PipePair,
-            Transform::from_xyz(pair_x, 0., 0.),
-            InheritedVisibility::VISIBLE,
-        ))
-        .id();
-
     commands.spawn((
-        Pipe,
-        Sprite {
-            color: GREEN_500.into(),
-            custom_size: Some(Vec2::new(PIPE_X_LEN, top_pipe_height)),
-            ..default()
-        },
-        RigidBody::Static,
-        Transform::from_xyz(0., top_pipe_center_y, 2.),
-        ChildOf(pair),
-    ));
-
-    commands.spawn((
-        Pipe,
-        Sprite {
-            color: GREEN_800.into(),
-            custom_size: Some(Vec2::new(PIPE_X_LEN, bottom_pipe_height)),
-            ..default()
-        },
-        RigidBody::Static,
-        Transform::from_xyz(0., bottom_pipe_center_y, 2.),
-        ChildOf(pair),
+        PipePair,
+        Transform::from_xyz(pair_x, 0., 0.),
+        InheritedVisibility::VISIBLE,
+        RigidBody::Kinematic,
+        TransformInterpolation,
+        children![
+            (
+                Pipe,
+                Sprite {
+                    color: GREEN_500.into(),
+                    custom_size: Some(Vec2::new(PIPE_X_LEN, top_pipe_height)),
+                    ..default()
+                },
+                Collider::rectangle(PIPE_X_LEN, top_pipe_height),
+                TransformInterpolation,
+                Transform::from_xyz(0., top_pipe_center_y, 2.),
+            ),
+            (
+                Pipe,
+                Sprite {
+                    color: GREEN_800.into(),
+                    custom_size: Some(Vec2::new(PIPE_X_LEN, bottom_pipe_height)),
+                    ..default()
+                },
+                Collider::rectangle(PIPE_X_LEN, bottom_pipe_height),
+                TransformInterpolation,
+                Transform::from_xyz(0., bottom_pipe_center_y, 2.),
+            )
+        ],
     ));
 
     // for (i, (color, y)) in [
@@ -111,17 +118,21 @@ fn insert_new_pipe(trigger: Trigger<InsertPipe>, mut commands: Commands) {
     // }
 }
 
-fn spawn_pipes(mut commands: Commands, pairs: Query<&PipePair>) {
+fn spawn_pipes(mut commands: Commands) {
     let min_pipe_length = 20.;
 
     let min_y = -CANVAS_SIZE.y / 2. + min_pipe_length + PIPE_GAP / 2.;
     let max_y = CANVAS_SIZE.y / 2. - min_pipe_length - PIPE_GAP / 2.;
 
-    let random_center = rand::rng();
+    let random_center = rand::random_range((min_y..max_y));
 
-    let num_pairs = pairs.iter().count();
+    commands.trigger(InsertPipe {
+        center_y: random_center,
+    });
+}
 
-    if num_pairs < 1 {
-        commands.trigger(InsertPipe { center_y: -70. });
+fn move_pipes_left(mut pairs: Query<&mut Transform, With<PipePair>>) {
+    for mut pair in &mut pairs {
+        pair.translation.x -= PIPE_SPEED;
     }
 }

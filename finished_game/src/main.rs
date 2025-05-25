@@ -1,5 +1,5 @@
 use avian2d::{math::Vector, prelude::*};
-use bevy::prelude::*;
+use bevy::{prelude::*, render::camera::ScalingMode};
 
 mod countdown;
 mod pipes;
@@ -38,5 +38,14 @@ fn main() {
 }
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn(Camera2d);
+    commands.spawn((
+        Camera2d,
+        Projection::Orthographic(OrthographicProjection {
+            scaling_mode: ScalingMode::AutoMax {
+                max_width: CANVAS_SIZE.x,
+                max_height: CANVAS_SIZE.y,
+            },
+            ..OrthographicProjection::default_2d()
+        }),
+    ));
 }
