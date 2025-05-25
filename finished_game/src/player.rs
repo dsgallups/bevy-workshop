@@ -1,12 +1,14 @@
 use avian2d::prelude::*;
 use bevy::{color::palettes::tailwind::RED_500, prelude::*};
 
+use crate::GameState;
+
 const SQUARE_LEN: f32 = 30.;
 const SPACEBAR_VELOCITY: f32 = 300.;
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, spawn_player)
-        .add_systems(Update, on_space);
+    app.add_systems(OnEnter(GameState::Countdown), spawn_player)
+        .add_systems(Update, on_space.run_if(in_state(GameState::Playing)));
 }
 
 #[derive(Component)]

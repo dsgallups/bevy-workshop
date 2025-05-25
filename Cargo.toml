@@ -2,3 +2,9 @@
 resolver = "3"
 members = ["my_game", "finished_game"]
 default-members = ["my_game"]
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
