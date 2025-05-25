@@ -4,6 +4,6 @@ CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 [config]
 default_to_workspace = false
 
-[tasks.r]
+[tasks.finished]
 command = "cargo"
 args = ["run", "-p", "finished_game"]
