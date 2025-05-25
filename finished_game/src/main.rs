@@ -2,6 +2,7 @@ use avian2d::{math::Vector, prelude::*};
 use bevy::{prelude::*, render::camera::ScalingMode};
 
 mod countdown;
+mod gameover;
 mod pipes;
 mod player;
 mod score;
@@ -34,6 +35,7 @@ fn main() {
         pipes::plugin,
         countdown::plugin,
         score::plugin,
+        gameover::plugin,
     ))
     .add_systems(Startup, spawn_camera)
     .run();

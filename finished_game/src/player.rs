@@ -8,6 +8,7 @@ const SPACEBAR_VELOCITY: f32 = 300.;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(GameState::Countdown), spawn_player)
+        .add_systems(OnExit(GameState::GameOver), despawn_player)
         .add_systems(Update, on_space.run_if(in_state(GameState::Playing)));
 }
 
@@ -32,6 +33,10 @@ fn spawn_player(mut commands: Commands) {
     //commands.spawn()
 
     //todo
+}
+
+fn despawn_player(mut commands: Commands, player: Single<Entity, With<Player>>) {
+    commands.entity(*player).despawn();
 }
 
 fn on_space(

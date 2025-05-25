@@ -31,7 +31,8 @@ pub fn plugin(app: &mut App) {
             FixedUpdate,
             move_pipes_left.run_if(in_state(GameState::Playing)),
         )
-        .add_systems(PostUpdate, despawn_passed_pipes);
+        .add_systems(PostUpdate, despawn_passed_pipes)
+        .add_systems(OnExit(GameState::GameOver), despawn_all_pipes);
 }
 
 #[derive(Event)]
@@ -135,32 +136,6 @@ fn insert_new_pipe(trigger: Trigger<InsertPipe>, mut commands: Commands) {
             ChildOf(pair),
         ))
         .observe(on_collision);
-
-    // for (i, (color, y)) in [
-    //     (BLUE_500.into(), pipe_top_start),
-    //     (BLUE_600.into(), pipe_top_end),
-    //     (BLUE_700.into(), top_pipe_center_y),
-    //     (PURPLE_500.into(), pipe_bottom_start),
-    //     (PURPLE_600.into(), pipe_bottom_end),
-    //     (PURPLE_700.into(), bottom_pipe_center_y),
-    // ]
-    // .into_iter()
-    // .enumerate()
-    // {
-    //     let offset_x = match i % 3 {
-    //         0 => pair_x - PIPE_X_LEN / 2.,
-    //         1 => pair_x,
-    //         _ => pair_x + PIPE_X_LEN / 2.,
-    //     };
-    //     commands.spawn((
-    //         Sprite {
-    //             color,
-    //             custom_size: Some(Vec2::new(10., 10.)),
-    //             ..default()
-    //         },
-    //         Transform::from_xyz(offset_x, y, 3.),
-    //     ));
-    // }
 }
 
 fn on_collision(
@@ -191,5 +166,11 @@ fn check_if_passed(
         }
         score.0 += 1;
         commands.entity(pipe).insert(Scored);
+    }
+}
+
+fn despawn_all_pipes(mut commands: Commands, pipes: Query<Entity, With<PipePair>>) {
+    for pipe in pipes {
+        commands.entity(pipe).despawn();
     }
 }
