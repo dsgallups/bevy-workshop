@@ -38,7 +38,7 @@ fn spawn_bevy_ball(mut commands: Commands, icon: Res<BevyIcon>) {
         },
         BevyBall,
         Velocity::default(),
-        Transform::from_xyz(0., CANVAS_HEIGHT / 2., 0.),
+        Transform::from_xyz(0., CANVAS_HEIGHT / 2., 2.),
     ));
 }
 
@@ -46,7 +46,7 @@ fn update_gravity(
     mut bevy_balls: Query<(&mut Transform, &mut Velocity), With<BevyBall>>,
     time: Res<Time>,
 ) {
-    const GRAVITY_ACCEL: f32 = -9.81;
+    const GRAVITY_ACCEL: f32 = -9.81 * 4.;
 
     for (mut transform, mut velocity) in &mut bevy_balls {
         velocity.0.y += GRAVITY_ACCEL * time.delta_secs();
