@@ -7,3 +7,7 @@ default_to_workspace = false
 [tasks.flap]
 command = "cargo"
 args = ["run", "-p", "flappy_block"]
+
+[tasks.basket]
+command = "cargo"
+args = ["run", "-p", "basket"]
