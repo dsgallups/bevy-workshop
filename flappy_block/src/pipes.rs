@@ -7,14 +7,11 @@ use bevy::{
     time::common_conditions::on_timer,
 };
 
-use crate::{CANVAS_SIZE, GameState, player::Player, score::Score, walls::WALL_Y_LEN};
+use crate::{CanvasSize, GameState, player::Player, score::Score, walls::WALL_Y_LEN};
 
 const PIPE_X_LEN: f32 = 50.;
 const PIPE_GAP: f32 = 180.;
 const PIPE_SPEED: f32 = 5.;
-
-const PIPE_TOP_START: f32 = CANVAS_SIZE.y / 2. - WALL_Y_LEN;
-const PIPE_BOTTOM_END: f32 = -CANVAS_SIZE.y / 2. + WALL_Y_LEN;
 
 pub fn plugin(app: &mut App) {
     app.add_observer(insert_new_pipe)
@@ -31,6 +28,7 @@ pub fn plugin(app: &mut App) {
             FixedUpdate,
             move_pipes_left.run_if(in_state(GameState::Playing)),
         )
+        //.add_systems(PreUpdate, update_pipes)
         .add_systems(PostUpdate, despawn_passed_pipes)
         .add_systems(OnExit(GameState::GameOver), despawn_all_pipes);
 }
@@ -46,11 +44,14 @@ pub struct PipePair;
 #[derive(Component)]
 pub struct Pipe;
 
-fn spawn_pipes(mut commands: Commands) {
+fn spawn_pipes(mut commands: Commands, canvas_size: Res<CanvasSize>) {
     let min_pipe_length = 20.;
 
-    let min_y = PIPE_BOTTOM_END + min_pipe_length + PIPE_GAP / 2.;
-    let max_y = PIPE_TOP_START - min_pipe_length - PIPE_GAP / 2.;
+    let pipe_top_start = pipe_top_start(canvas_size.y);
+    let pipe_bottom_end = pipe_bottom_end(canvas_size.y);
+
+    let min_y = pipe_bottom_end + min_pipe_length + PIPE_GAP / 2.;
+    let max_y = pipe_top_start - min_pipe_length - PIPE_GAP / 2.;
 
     let random_center = rand::random_range((min_y..max_y));
 
@@ -68,32 +69,42 @@ fn move_pipes_left(mut pairs: Query<&mut Transform, With<PipePair>>) {
 fn despawn_passed_pipes(
     mut commands: Commands,
     pipe_pairs: Query<(Entity, &Transform), With<PipePair>>,
+    canvas_size: Res<CanvasSize>,
 ) {
     for (pipe_pair, transform) in pipe_pairs {
-        if transform.translation.x <= -CANVAS_SIZE.x / 2. - PIPE_X_LEN {
+        if transform.translation.x <= (-canvas_size.x / 2. + PIPE_X_LEN) {
+            info!(
+                "Canvas size: {}, {}",
+                canvas_size.x,
+                canvas_size.x / 2. - PIPE_X_LEN
+            );
             commands.entity(pipe_pair).despawn();
         }
     }
 }
 
-fn insert_new_pipe(trigger: Trigger<InsertPipe>, mut commands: Commands) {
+fn insert_new_pipe(
+    trigger: Trigger<InsertPipe>,
+    mut commands: Commands,
+    canvas_size: Res<CanvasSize>,
+) {
     let event = trigger.event();
 
     let center_y = event.center_y;
 
     // where on the x axis does the pair sit
-    let pair_x = CANVAS_SIZE.x / 2. + PIPE_X_LEN / 2.;
+    let pair_x = canvas_size.x / 2. + PIPE_X_LEN / 2.;
 
     /*
         a variable with `start` is the y value that is greater than the `end` value.
     */
     let pipe_top_end = center_y + PIPE_GAP / 2.;
 
-    let top_pipe_height = PIPE_TOP_START - pipe_top_end;
+    let top_pipe_height = pipe_top_start(canvas_size.y) - pipe_top_end;
     let top_pipe_center_y = center_y + PIPE_GAP / 2. + top_pipe_height / 2.;
 
     let pipe_bottom_start = pipe_top_end - PIPE_GAP;
-    let bottom_pipe_height = pipe_bottom_start - PIPE_BOTTOM_END;
+    let bottom_pipe_height = pipe_bottom_start - pipe_bottom_end(canvas_size.y);
     let bottom_pipe_center_y = center_y - PIPE_GAP / 2. - bottom_pipe_height / 2.;
 
     let pair = commands
@@ -173,4 +184,12 @@ fn despawn_all_pipes(mut commands: Commands, pipes: Query<Entity, With<PipePair>
     for pipe in pipes {
         commands.entity(pipe).despawn();
     }
+}
+
+pub fn pipe_top_start(canvas_height: f32) -> f32 {
+    canvas_height / 2. - WALL_Y_LEN
+}
+
+pub fn pipe_bottom_end(canvas_height: f32) -> f32 {
+    -canvas_height / 2. + WALL_Y_LEN
 }

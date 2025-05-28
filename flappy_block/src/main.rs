@@ -1,5 +1,5 @@
 use avian2d::{math::Vector, prelude::*};
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
 
 mod countdown;
 mod gameover;
@@ -10,7 +10,14 @@ mod walls;
 
 const GRAVITY_SCALE: f32 = 50.;
 
-const CANVAS_SIZE: Vec2 = Vec2::new(600., 400.);
+#[derive(Resource, Deref)]
+pub struct CanvasSize(pub Vec2);
+
+impl Default for CanvasSize {
+    fn default() -> Self {
+        Self(Vec2::new(600., 400.))
+    }
+}
 
 #[derive(States, Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
 enum GameState {
@@ -25,7 +32,8 @@ fn main() {
 
     app.add_plugins(DefaultPlugins)
         .add_plugins(PhysicsPlugins::default())
-        .insert_resource(Gravity(Vector::NEG_Y * 9.81 * GRAVITY_SCALE));
+        .insert_resource(Gravity(Vector::NEG_Y * 9.81 * GRAVITY_SCALE))
+        .init_resource::<CanvasSize>();
 
     app.init_state::<GameState>();
 
@@ -38,6 +46,7 @@ fn main() {
         gameover::plugin,
     ))
     .add_systems(Startup, spawn_camera)
+    .add_systems(PreUpdate, sync_canvas_size)
     .run();
 }
 
@@ -52,4 +61,10 @@ fn spawn_camera(mut commands: Commands) {
         //     ..OrthographicProjection::default_2d()
         // }),
     ));
+}
+
+fn sync_canvas_size(mut size: ResMut<CanvasSize>, window: Query<&Window, With<PrimaryWindow>>) {
+    let window = window.single().unwrap();
+
+    size.0 = window.size();
 }
