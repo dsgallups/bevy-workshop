@@ -1,5 +1,7 @@
 use avian2d::prelude::*;
-use bevy::{color::palettes::tailwind::RED_500, prelude::*};
+use bevy::{
+    color::palettes::tailwind::RED_500, input::common_conditions::input_just_pressed, prelude::*,
+};
 
 use crate::GameState;
 
@@ -9,7 +11,10 @@ const SPACEBAR_VELOCITY: f32 = 300.;
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(GameState::Countdown), spawn_player)
         .add_systems(OnExit(GameState::GameOver), despawn_player)
-        .add_systems(Update, on_space.run_if(in_state(GameState::Playing)));
+        .add_systems(
+            Update,
+            jump.run_if(in_state(GameState::Playing).and(input_just_pressed(KeyCode::Space))),
+        );
 }
 
 #[derive(Component)]
@@ -29,27 +34,12 @@ fn spawn_player(mut commands: Commands) {
         LockedAxes::ALL_LOCKED.unlock_translation_y(),
         Collider::rectangle(SQUARE_LEN, SQUARE_LEN),
     ));
-
-    //commands.spawn()
-
-    //todo
 }
 
 fn despawn_player(mut commands: Commands, player: Single<Entity, With<Player>>) {
     commands.entity(*player).despawn();
 }
 
-fn on_space(
-    button_input: Res<ButtonInput<KeyCode>>,
-    mut player: Query<&mut LinearVelocity, With<Player>>,
-) {
-    if !button_input.just_pressed(KeyCode::Space) {
-        return;
-    }
-
-    let Ok(mut linear_velocity) = player.single_mut() else {
-        return;
-    };
-
+fn jump(mut linear_velocity: Single<&mut LinearVelocity, With<Player>>) {
     linear_velocity.y = SPACEBAR_VELOCITY;
 }

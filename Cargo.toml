@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["my_game", "finished_game"]
+members = ["my_game", "flappy_block", "basket"]
 default-members = ["my_game"]
 
 [profile.dev]
@@ -8,3 +8,10 @@ opt-level = 1
 
 [profile.dev.package."*"]
 opt-level = 3
+
+
+[workspace.dependencies]
+avian2d = { version = "0.3.0" }
+bevy = "0.16.0"
+rand = "0.9.1"
+getrandom = { version = "0.3", features = ["wasm_js"] }

@@ -1,14 +1,12 @@
 [package]
-name = "finished_game"
+name = "basket"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-avian2d = { version = "0.3.0" }
-bevy = "0.16.0"
-rand = "0.9.1"
-getrandom = { version = "0.3", features = ["wasm_js"] }
-
+bevy.workspace = true
+rand.workspace = true
+getrandom.workspace = true
 
 [lints.clippy]
 type-complexity = "allow"
